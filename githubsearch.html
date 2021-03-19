@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+      integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh"
+      crossorigin="anonymous"
+    />
+    <link rel="stylesheet" href="style.css" />
+    <title>Desafio</title>
+  </head>
+  <body class="fundo">
+    <div id="app">
+      <div class="row">
+        <div class="col-4 offset-4 text-center mt-4 rounded">
+          <h2 v-if="loading == false" class="text-white text-center mt-4">
+            {{titulo}}
+          </h2>
+          <h4 v-else class="text-white">Carregando</h4>
+          <div class="row pt-4">
+            <input
+              v-model="NovoRepositorio"
+              @keyup.enter="addRepositorio"
+              ref="NovoRepositorio"
+              type="text"
+              class="form-control offset-3 col-4 mr-4"
+              placeholder="Seu repositório"
+            />
+            <button
+              @click="addRepositorio"
+              type="button"
+              class="col-1 btn botao"
+            >
+              <span class="">+</span>
+            </button>
+            <div v-if="NaoBarra == true" class="alert alert-danger text-center offset-3">
+              <p>Digite um repositorio válido</p>
+            </div>
+            <div v-if="erroRepositorio == true" class="alert alert-danger text-center offset-3">
+              <p>Repositório não encontrado</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        
+        <div class="col-12 qqsequermonstrao">
+          <div v-for="repositorio in repositorios" class="card">
+            <div class="card-body">
+              <ul class="list-group">
+                <img :src="repositorio.owner.avatar_url" />
+                <h5 class="card-title">Nome:{{repositorio.name}}</h5>
+                <p class="card-text">
+                  Issues:{{repositorio.open_issues_count}}
+                </p>
+                <p class="card-text">Forkes:{{repositorio.forks_count}}</p>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+      const app = new Vue({
+        el: "#app",
+        data: {
+          titulo: "Github REPOS",
+          NovoRepositorio: "",
+          repositorios: [],
+          loading: false,
+          erroRepositorio: false,
+          NaoBarra: false,
+        },
+        methods: {
+          addRepositorio: function () {
+            this.loading = true;
+            //this.repositorios.push(this.NovoRepositorio)
+            if (this.NovoRepositorio !== "") {
+              axios
+                .get(`https://api.github.com/repos/${this.NovoRepositorio}`)
+                .then((response) => {
+                  this.repositorios.push(response.data);
+                  this.NovoRepositorio = "";
+                  this.$refs.NovoRepositorio.focus();
+                  this.loading = false;
+                })
+                .catch((err) => {
+                  this.loading = false;
+                  this.erroRepositorio = true;
+                });
+            }
+          },
+        },
+        watch: {
+          erroRepositorio: function () {
+            setTimeout(() => {
+              this.erroRepositorio = false;
+            }, 2000);
+          },
+          NovoRepositorio: function () {
+            if (
+              this.NovoRepositorio.includes("/") ||
+              this.NovoRepositorio == ""
+            ) {
+              this.NaoBarra = false;
+            } else {
+              this.NaoBarra = true;
+            }
+          },
+        },
+      });
+    </script>
+  </body>
+</html>
